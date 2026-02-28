@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css">
+
+        <title>Your Plan</title>
+    </head>
+    <body>
+        <nav class="navbar">
+            <div class="nav-left">Project Macros</div>
+            <div class="nav-right">
+                <a href="whatra.html">Home</a>
+                <a href="plan.html" class="active">My Plan</a>
+            </div>
+        </nav>
+        <br>
+        <h1>Your Personalized Plan</h1>
+
+        <section>
+            <main class = "dashboard">
+                <p id="quoteText"></p>
+                <p id ="stats"></p>
+                    <div class="card">
+                        <h3>BMI</h3>
+                        <p id="bmiResult">-</p>
+                    </div>
+
+                    <div class="card">
+                        <h3>Workout</h3>
+                        <p id = "workoutResult">-</p>
+                    </div>
+
+                    <div>
+                        <h3>Weekly Workout Plan</h3>
+                        <table border = "1" id = "workoutTable">
+                            <thead>
+                                <tr>
+                                    <th>Day</th>
+                                    <th>Workout</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Monday</td><td id="mon">-</td></tr>
+                                <tr><td>Tuesday</td><td id="tue">-</td></tr>
+                                <tr><td>Wednesday</td><td id="wed">-</td></tr>
+                                <tr><td>Thursday</td><td id="thu">-</td></tr>
+                                <tr><td>Friday</td><td id="fri">-</td></tr>
+                                <tr><td>Saturday</td><td id="sat">-</td></tr>
+                                <tr><td>Sunday</td><td id="sun">-</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="card">
+                        <h3>Meals</h3>
+                        <p id = "mealsResult">-</p>
+                    </div>
+
+                    <div class = "card">
+                        <h3>Daily Schedule</h3>
+                        <p id = "scheduleResult">-</p>
+                    </div>
+                </section>
+                <button onclick = "goBack()">Make Another Plan</button>
+                <button onclick = "regenerate()">Regenerate Plan</button>
+                <button onclick = "exportToCalendar()">Add Workout to Calendar</button>
+                <p style = "font: 14px; color: white";> After downloading workout, export it to Google Calendar or any calendar app. </p>
+                <footer>
+                    <br>
+                    <p>&copy Built by Sruthimeena Ramasamy</p>
+                    <p></p>
+                </footer>
+                <script src="script.js"></script>
+         
+            </main>
+        </section>
+    </body>
+</html>

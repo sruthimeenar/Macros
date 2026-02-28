@@ -1,0 +1,141 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: Georgia, Helvetica; 
+  background: #6F4D38;
+  padding: 20px;
+  color: white;
+}
+
+a {
+  color: white;
+}
+
+h1, h2, h3 {
+  color: #D5B893;
+  text-align: center;
+}
+
+div {
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+}
+
+button {
+  padding: 20px 25px;
+  border: none;
+  border-radius: 6px;
+  background: #D5B893;
+  color: white;
+  cursor: pointer;
+}
+.card {
+  background: #D5B893;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.card h3 {
+  margin-top: 0;
+  color: #3d2701;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid white;
+  text-align: center;
+}
+
+th {
+  background: #D5B893;
+  font-weight: bold;
+}
+
+tr:hover {
+  background: #3d2700;
+}
+#quoteText {
+  font-style: italic;
+  font-size: 20px;
+  color: white;
+  text-align: center;
+  margin: 20px 0;
+}
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 60px;
+  background: #3d2701;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px;
+  box-shadow: 0 4px 10px #D5B893;
+  z-index: 1000;
+}
+
+.nav-left {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.nav-right a {
+  color: #D5B893;
+  text-decoration: none;
+  margin-left: 20px;
+  font-weight: 500;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+.nav-right a:hover {
+  color: #D5B893;
+}
+
+body {
+  padding-top: 70px;
+}
+.nav-right a.active {
+  border-bottom: 2px solid #D5B893;
+}
+fieldset {
+  border: none;
+  padding: 0;
+}
+
+legend {
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align:center;
+}
+section{
+  text-align: center;
+}
+.dashboard {
+  margin-top: 40px;
+  max-width: 1000 px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 20px;
+}
+footer{
+  width: 100%;
+  background:#3d2700;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}

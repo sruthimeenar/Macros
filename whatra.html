@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css">
+
+        <title> Project Macros (Pilot)</title>
+    </head>
+    <body>
+        <nav class="navbar">
+            <div class="nav-left">Project Macros</div>
+            <div class="nav-right">
+                <a href="whatra.html" class = "active">Home</a>
+                <a href="plan.html">My Plan</a>
+            </div>
+        </nav>
+        <main class ="dashboard">
+        <header>
+            <h2>Workout and Meal Planner</h2>
+        </header>
+        <br>
+        <h3> Achieve your desired health with our website </h3>
+        <br>
+        <h3> Before we begin, please fill in this form:</h3>
+        <br>
+            <section>
+                
+                <h3>Details</h3>
+                <form id ="userForm">
+                    <fieldset>
+                        <legend>Make Plan</legend>
+                        <label>
+                            Age:
+                            <input type="number" id="ageInput"/>
+                        </label>
+                        <br /><br />
+
+                        <label>
+                            Weight:
+                            <input type = "number" id = "weightInput" />
+                            <select id = "weightUnit">
+                                <option value = "kg">kg</option>
+                                <option value = "lb">lb</option>
+                            </select>
+                        </label>
+                        <br /><br />
+
+                        <label>
+                            Height:
+                            <input type = "number" id = "heightInput" />
+                            <select id = "heightUnit">
+                                <option value = "cm">cm</option>
+                                <option value = "in">in</option>
+                            </select>
+                        </label>
+                        <br /><br />
+
+                        <label>
+                            Goal:
+                            <select id = "goalSelect">
+                                <option>Muscle Gain</option>
+                                <option>Weight Loss</option>
+                            </select>
+                        </label>
+                        <br /><br />
+
+                        <label>
+                            Wake Up Time:
+                            <input type = "time" id="wakeTime" />
+                        </label>
+                        <br /> <br />
+
+                        <label>
+                            Sleep time:
+                            <input type="time" id="sleepTime" />
+                        </label>
+                        <br /><br />
+
+                        <button type="submit">Generate My Plan</button>
+
+                    </fieldset>
+                </form>
+            </section>
+        </main>
+        <script src="script.js"></script>
+    </body>
+</html>   
