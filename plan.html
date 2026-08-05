@@ -1,78 +1,26 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <link rel="stylesheet" href="style.css">
-
-        <title>Your Plan</title>
-    </head>
-    <body>
-        <nav class="navbar">
-            <div class="nav-left">Project Macros</div>
-            <div class="nav-right">
-                <a href="whatra.html">Home</a>
-                <a href="plan.html" class="active">My Plan</a>
-            </div>
-        </nav>
-        <br>
-        <h1>Your Personalized Plan</h1>
-
-        <section>
-            <main class = "dashboard">
-                <p id="quoteText"></p>
-                <p id ="stats"></p>
-                    <div class="card">
-                        <h3>BMI</h3>
-                        <p id="bmiResult">-</p>
-                    </div>
-
-                    <div class="card">
-                        <h3>Workout</h3>
-                        <p id = "workoutResult">-</p>
-                    </div>
-
-                    <div>
-                        <h3>Weekly Workout Plan</h3>
-                        <table border = "1" id = "workoutTable">
-                            <thead>
-                                <tr>
-                                    <th>Day</th>
-                                    <th>Workout</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td>Monday</td><td id="mon">-</td></tr>
-                                <tr><td>Tuesday</td><td id="tue">-</td></tr>
-                                <tr><td>Wednesday</td><td id="wed">-</td></tr>
-                                <tr><td>Thursday</td><td id="thu">-</td></tr>
-                                <tr><td>Friday</td><td id="fri">-</td></tr>
-                                <tr><td>Saturday</td><td id="sat">-</td></tr>
-                                <tr><td>Sunday</td><td id="sun">-</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="card">
-                        <h3>Meals</h3>
-                        <p id = "mealsResult">-</p>
-                    </div>
-
-                    <div class = "card">
-                        <h3>Daily Schedule</h3>
-                        <p id = "scheduleResult">-</p>
-                    </div>
-                </section>
-                <button onclick = "goBack()">Make Another Plan</button>
-                <button onclick = "regenerate()">Regenerate Plan</button>
-                <button onclick = "exportToCalendar()">Add Workout to Calendar</button>
-                <p style = "font: 14px; color: white";> After downloading workout, export it to Google Calendar or any calendar app. </p>
-                <footer>
-                    <br>
-                    <p>&copy Built by Sruthimeena Ramasamy</p>
-                    <p></p>
-                </footer>
-                <script src="script.js"></script>
-         
-            </main>
-        </section>
-    </body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"><title>Project Macros — My plan</title>
+</head>
+<body class="plan-page">
+  <nav class="navbar" aria-label="Primary navigation"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>Project Macros</a><div class="nav-right"><a href="index.html">Make a plan</a><a href="plan.html" class="active">My plan</a></div></nav>
+  <main class="dashboard plan-dashboard">
+    <header class="plan-header"><div><p class="eyebrow">02 — Your program</p><h1>Your personalized<br><em>game plan.</em></h1></div><div class="goal-stamp" id="stats">Goal: —</div></header>
+    <p id="quoteText" class="quote"></p>
+    <section class="overview-grid" aria-label="Plan overview">
+      <article class="card metric-card"><p class="card-label">Body snapshot</p><h2>BMI</h2><p id="bmiResult" class="metric">—</p></article>
+      <article class="card workout-card"><p class="card-label">Today’s focus</p><h2>Workout</h2><p id="workoutResult" class="card-result">—</p><span class="corner-shape" aria-hidden="true"></span></article>
+      <article class="card meal-card"><p class="card-label">Fuel for the day</p><h2>Meals</h2><p id="mealsResult" class="card-result">—</p></article>
+      <article class="card schedule-card"><p class="card-label">Your rhythm</p><h2>Daily schedule</h2><p id="scheduleResult" class="card-result">—</p></article>
+    </section>
+    <section class="weekly-section" aria-labelledby="weekly-title"><div class="section-title"><p class="eyebrow">Week at a glance</p><h2 id="weekly-title">Keep the promise.</h2></div><div class="table-wrap"><table id="workoutTable"><thead><tr><th>Day</th><th>Session</th></tr></thead><tbody><tr><td>Monday</td><td id="mon">—</td></tr><tr><td>Tuesday</td><td id="tue">—</td></tr><tr><td>Wednesday</td><td id="wed">—</td></tr><tr><td>Thursday</td><td id="thu">—</td></tr><tr><td>Friday</td><td id="fri">—</td></tr><tr><td>Saturday</td><td id="sat">—</td></tr><tr><td>Sunday</td><td id="sun">—</td></tr></tbody></table></div></section>
+    <div class="plan-actions"><button class="button-secondary" onclick="goBack()">← Make another plan</button><button class="button-secondary" onclick="regenerate()">Refresh plan</button><button onclick="exportToCalendar()">Add workout to calendar <span aria-hidden="true">→</span></button></div>
+    <p class="calendar-note">Your workout downloads as a calendar file that can be imported into Google Calendar or another calendar app.</p>
+  </main>
+  <footer>Built for steady progress <span aria-hidden="true">●</span> Project Macros</footer><script src="script.js"></script>
+</body>
 </html>

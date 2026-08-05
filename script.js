@@ -240,13 +240,15 @@ if (window.location.pathname.includes("plan.html")) {
             bmiBox.innerText = `BMI: ${bmi} (${bmiMsg})`;
         }
 
-        document.getElementById("workoutResult").innerText = workout;
-        document.getElementById("mealsResult").innerText = meals;
-        document.getElementById("scheduleResult").innerText = "Wake up at ${wakeTime}, Workout, Chill, Sleep at ${sleepTime}";
+        document.getElementById("workoutResult").innerText = workout || "Create a plan to get started.";
+        document.getElementById("mealsResult").innerText = meals || "Your meal guidance will appear here.";
+        document.getElementById("scheduleResult").innerText = schedule
+            ? `Wake up at ${wakeTime}, workout, eat, recharge, sleep at ${sleepTime}.`
+            : "Your daily rhythm will appear here.";
         document.getElementById("quoteText").innerText = getDailyQuote();
 
     function goBack () {
-        window.location.href = "whatra.html";
+        window.location.href = "index.html";
     }
     function regenerate() {
         const goal = localStorage.getItem("goal");

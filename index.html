@@ -1,87 +1,47 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <link rel="stylesheet" href="style.css">
-
-        <title> Project Macros (Pilot)</title>
-    </head>
-    <body>
-        <nav class="navbar">
-            <div class="nav-left">Project Macros</div>
-            <div class="nav-right">
-                <a href="whatra.html" class = "active">Home</a>
-                <a href="plan.html">My Plan</a>
-            </div>
-        </nav>
-        <main class ="dashboard">
-        <header>
-            <h2>Workout and Meal Planner</h2>
-        </header>
-        <br>
-        <h3> Achieve your desired health with our website </h3>
-        <br>
-        <h3> Before we begin, please fill in this form:</h3>
-        <br>
-            <section>
-                
-                <h3>Details</h3>
-                <form id ="userForm">
-                    <fieldset>
-                        <legend>Make Plan</legend>
-                        <label>
-                            Age:
-                            <input type="number" id="ageInput"/>
-                        </label>
-                        <br /><br />
-
-                        <label>
-                            Weight:
-                            <input type = "number" id = "weightInput" />
-                            <select id = "weightUnit">
-                                <option value = "kg">kg</option>
-                                <option value = "lb">lb</option>
-                            </select>
-                        </label>
-                        <br /><br />
-
-                        <label>
-                            Height:
-                            <input type = "number" id = "heightInput" />
-                            <select id = "heightUnit">
-                                <option value = "cm">cm</option>
-                                <option value = "in">in</option>
-                            </select>
-                        </label>
-                        <br /><br />
-
-                        <label>
-                            Goal:
-                            <select id = "goalSelect">
-                                <option>Muscle Gain</option>
-                                <option>Weight Loss</option>
-                            </select>
-                        </label>
-                        <br /><br />
-
-                        <label>
-                            Wake Up Time:
-                            <input type = "time" id="wakeTime" />
-                        </label>
-                        <br /> <br />
-
-                        <label>
-                            Sleep time:
-                            <input type="time" id="sleepTime" />
-                        </label>
-                        <br /><br />
-
-                        <button type="submit">Generate My Plan</button>
-
-                    </fieldset>
-                </form>
-            </section>
-        </main>
-        <script src="script.js"></script>
-    </body>
-
-</html>   
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <title>Project Macros — Make a plan</title>
+</head>
+<body class="home-page">
+  <nav class="navbar" aria-label="Primary navigation">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>Project Macros</a>
+    <div class="nav-right"><a href="index.html" class="active">Make a plan</a><a href="plan.html">My plan</a></div>
+  </nav>
+  <main class="dashboard home-dashboard">
+    <section class="hero" aria-labelledby="page-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Personal training, simplified</p>
+        <h1 id="page-title">Build a routine<br><em>with momentum.</em></h1>
+        <p class="hero-intro">A practical workout and meal plan designed around your goal, body, and daily rhythm.</p>
+        <div class="shape-row" aria-hidden="true"><span></span><span></span><span></span></div>
+      </div>
+      <aside class="hero-art" aria-label="Project Macros visual motif"><div class="sun"></div><div class="arch"></div><div class="dot"></div><span>MOVE<br>WITH<br>INTENT</span></aside>
+    </section>
+    <section class="form-panel" aria-labelledby="details-title">
+      <div class="panel-heading"><p class="eyebrow">01 — Your details</p><h2 id="details-title">Let’s make it personal.</h2></div>
+      <form id="userForm">
+        <fieldset>
+          <legend class="sr-only">Plan preferences</legend>
+          <div class="form-grid">
+            <label>Age <input type="number" id="ageInput" min="1" placeholder="Years" required></label>
+            <label>Goal <select id="goalSelect"><option>Muscle Gain</option><option>Weight Loss</option></select></label>
+            <label>Weight <span class="input-pair"><input type="number" id="weightInput" min="1" placeholder="0" required><select id="weightUnit" aria-label="Weight unit"><option value="kg">kg</option><option value="lb">lb</option></select></span></label>
+            <label>Height <span class="input-pair"><input type="number" id="heightInput" min="1" placeholder="0" required><select id="heightUnit" aria-label="Height unit"><option value="cm">cm</option><option value="in">in</option></select></span></label>
+            <label>Wake-up time <input type="time" id="wakeTime" required></label>
+            <label>Sleep time <input type="time" id="sleepTime" required></label>
+          </div>
+          <div class="form-footer"><p>Based on your goal, we’ll create a starting routine you can actually keep.</p><button type="submit">Generate my plan <span aria-hidden="true">→</span></button></div>
+        </fieldset>
+      </form>
+    </section>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
