@@ -1,12 +1,12 @@
 # Macros
 
-A personal training website that turns a few details about you — goal, training level, equipment, and diet — into a full workout and meal plan, then helps you track streaks, check-ins, and daily activity.
+A personal training website that turns a few details about you such as goal, training level, equipment, and diet into a full workout and meal plan, then helps you track streaks, check-ins, and daily activity.
 
 ## Pages
-- `index.html` — Landing page: a short summary of what Macros does, with a "Get started" link into the login page.
-- `login.html` — Local account log in / sign up. No backend: accounts and plans are stored only in the browser's `localStorage`.
-- `plan-form.html` — "Make a plan": the intake form (age, weight, height, goal, training level, equipment, diet, wake/sleep times). Requires being logged in.
-- `plan.html` — "My plan": your generated weekly workouts, weekly meals, progress tracking, and a smartwatch activity log. Requires being logged in.
+- `index.html`: Landing page: a short summary of what Macros does, with a "Get started" link into the login page.
+- `login.html`: Local account log in / sign up. No backend: accounts and plans are stored only in the browser's `localStorage`.
+- `plan-form.html`: "Make a plan": the intake form (age, weight, height, goal, training level, equipment, diet, wake/sleep times). Requires being logged in.
+- `plan.html`: "My plan": your generated weekly workouts, weekly meals, progress tracking, and a smartwatch activity log. Requires being logged in.
 
 ## How personalization works
 - **Calorie & macro targets** are calculated per user with a Mifflin-St Jeor style BMR estimate, adjusted for training level (activity multiplier) and goal (a calorie surplus for muscle gain, a deficit for weight loss), with protein set relative to body weight.
@@ -20,4 +20,4 @@ This is a static site with no server. Signing up creates a local account (name, 
 The plan page includes a manual activity log (steps, heart rate, active calories, sleep) styled as a device sync panel. It's not connected to a real smartwatch yet — see `SMARTWATCH_INTEGRATION.md` for what that would take.
 
 ## Running locally
-Just open `index.html` in a browser, or serve the folder with any static file server.
+Go to https://sruthimeenar.github.io/Macros/
