@@ -1,3 +1,9 @@
+/* ---------- device-sync backend ----------
+   Real Fitbit/Google Fit syncing needs a server to hold OAuth client secrets - see /backend.
+   Point this at wherever that backend is running. localhost only works while you're developing
+   on your own machine; set it to your deployed backend's URL for anyone else to use it. */
+const DEVICE_BACKEND_URL = get("deviceBackendUrl", "http://localhost:4000");
+
 /* ---------- shared helpers ---------- */
 const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const quotes = ["Consistency beats motivation.", "You showed up. That matters.", "Progress over perfection.", "Small steps every day.", "Discipline builds confidence.", "Make the next choice a good one.", "A routine is self-respect in motion."];
@@ -163,7 +169,64 @@ function renderPlan() {
   renderRows(); renderProgress(); renderActivity();
 }
 
-/* ---------- smartwatch (manual log for now — see SMARTWATCH_INTEGRATION.md) ---------- */
+/* ---------- smartwatch: real device sync via the backend in /backend ---------- */
+async function fetchDeviceStatus() {
+  const email = currentUser(); if (!email) return { connected: [] };
+  try {
+    const res = await fetch(`${DEVICE_BACKEND_URL}/auth/status?email=${encodeURIComponent(email)}`);
+    if (!res.ok) throw new Error("status request failed");
+    return await res.json();
+  } catch {
+    return { connected: [], offline: true };
+  }
+}
+async function renderDeviceStatus() {
+  const box = document.getElementById("deviceStatus"); if (!box) return;
+  const status = await fetchDeviceStatus();
+  if (status.offline) { box.innerText = "Backend not reachable — start the server in /backend to connect a real device."; return; }
+  const labels = { fitbit: "Fitbit", googleFit: "Google Fit" };
+  document.querySelectorAll("[data-provider]").forEach(row => {
+    const provider = row.dataset.provider; const isConnected = status.connected.includes(provider);
+    row.querySelector("[data-status-text]").innerText = isConnected ? "Connected" : "Not connected";
+    row.querySelector("[data-connect-btn]").style.display = isConnected ? "none" : "";
+    row.querySelector("[data-sync-btn]").style.display = isConnected ? "" : "none";
+    row.querySelector("[data-disconnect-btn]").style.display = isConnected ? "" : "none";
+  });
+  box.innerText = status.connected.length ? `Connected: ${status.connected.map(p => labels[p] || p).join(", ")}` : "No device connected yet.";
+}
+window.connectDevice = provider => {
+  const email = currentUser(); if (!email) return;
+  window.location.href = `${DEVICE_BACKEND_URL}/auth/${provider}/connect?email=${encodeURIComponent(email)}`;
+};
+window.disconnectDevice = async provider => {
+  const email = currentUser(); if (!email) return;
+  try { await fetch(`${DEVICE_BACKEND_URL}/auth/${provider}?email=${encodeURIComponent(email)}`, { method: "DELETE" }); } catch {}
+  renderDeviceStatus();
+};
+window.syncDevice = async provider => {
+  const email = currentUser(); if (!email) return;
+  const summaryEl = document.getElementById("activitySummary");
+  if (summaryEl) summaryEl.innerText = "Syncing...";
+  try {
+    const res = await fetch(`${DEVICE_BACKEND_URL}/api/activity/today?email=${encodeURIComponent(email)}`);
+    const data = await res.json();
+    if (!res.ok || data.error) { if (summaryEl) summaryEl.innerText = data.error || "Sync failed."; return; }
+    const log = JSON.parse(uGet("activityLog", "{}"));
+    log[new Date().toISOString().slice(0, 10)] = { steps: data.steps, heartRate: data.heartRate, calories: data.calories, sleep: data.sleep, source: data.source };
+    uSet("activityLog", JSON.stringify(log));
+    renderActivity();
+  } catch {
+    if (summaryEl) summaryEl.innerText = "Could not reach the backend. Is it running?";
+  }
+};
+function showDeviceRedirectNotice() {
+  const params = new URLSearchParams(window.location.search);
+  const notice = document.getElementById("deviceStatus"); if (!notice) return;
+  if (params.get("deviceConnected")) notice.innerText = `Connected to ${params.get("deviceConnected")}. Syncing...`;
+  if (params.get("deviceError")) notice.innerText = `Couldn't connect (${params.get("deviceError")}). Please try again.`;
+}
+
+/* ---------- smartwatch (manual log fallback — see SMARTWATCH_INTEGRATION.md) ---------- */
 function setupActivityForm() {
   const activityForm = document.getElementById("activityForm"); if (!activityForm) return;
   activityForm.addEventListener("submit", event => {
@@ -177,7 +240,8 @@ function setupActivityForm() {
 function renderActivity() {
   const summaryEl = document.getElementById("activitySummary"); if (!summaryEl) return;
   const log = JSON.parse(uGet("activityLog", "{}")); const entry = log[new Date().toISOString().slice(0, 10)];
-  summaryEl.innerText = entry ? `Today: ${entry.steps || "-"} steps, ${entry.heartRate || "-"} bpm avg, ${entry.calories || "-"} kcal active, ${entry.sleep || "-"} hr sleep.` : "No activity logged yet today.";
+  const sourceLabel = entry?.source === "fitbit" ? " (synced from Fitbit)" : entry?.source === "googleFit" ? " (synced from Google Fit)" : entry ? " (manual)" : "";
+  summaryEl.innerText = entry ? `Today: ${entry.steps ?? "-"} steps, ${entry.heartRate ?? "-"} bpm avg, ${entry.calories ?? "-"} kcal active, ${entry.sleep ?? "-"} hr sleep.${sourceLabel}` : "No activity logged yet today.";
 }
 
 /* ---------- forms ---------- */
@@ -245,4 +309,10 @@ if (currentPath.includes("login.html")) {
   if (currentUser()) window.location.replace(uGet("planReady") === "true" ? "plan.html" : "plan-form.html"); else setupAuthForms();
 }
 if (currentPath.includes("plan-form.html")) { if (requireAuth()) setupProfile(); }
-if (currentPath.includes("plan.html")) { if (requireAuth()) { setupProgressForm(); setupActivityForm(); renderPlan(); } }
+if (currentPath.includes("plan.html")) {
+  if (requireAuth()) {
+    setupProgressForm(); setupActivityForm(); renderPlan(); showDeviceRedirectNotice(); renderDeviceStatus();
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("deviceConnected")) { window.syncDevice(params.get("deviceConnected")); window.history.replaceState({}, "", "plan.html"); }
+  }
+}

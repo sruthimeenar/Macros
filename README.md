@@ -17,7 +17,10 @@ A personal training website that turns a few details about you — goal, trainin
 This is a static site with no server. Signing up creates a local account (name, email, a salted password hash) stored in this browser only — there's no real authentication across devices, and clearing browser data removes it. This was a deliberate simplification; see `SMARTWATCH_INTEGRATION.md` for what moving to a real backend would involve, since the same backend would also enable real cross-device accounts.
 
 ## Smartwatch tracking
-The plan page includes a manual activity log (steps, heart rate, active calories, sleep) styled as a device sync panel. It's not connected to a real smartwatch yet — see `SMARTWATCH_INTEGRATION.md` for what that would take.
+The plan page can sync real activity from Fitbit and Google Fit, backed by the server in `/backend` (client secrets can't live in frontend code, so a real OAuth flow needs a backend — see `SMARTWATCH_INTEGRATION.md` for why). A manual log is still there as a fallback under "Log activity manually instead" for anyone who hasn't set up the backend, or whose device isn't supported. To turn on real syncing:
+1. Set up and run the backend — see `backend/README.md`.
+2. In `script.js`, set `DEVICE_BACKEND_URL` to wherever that backend is reachable.
+3. Use the "Connect Fitbit" / "Connect Google Fit" buttons on the My Plan page.
 
 ## Running locally
 Just open `index.html` in a browser, or serve the folder with any static file server.
