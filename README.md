@@ -1,26 +1,34 @@
-# Macros
+# Macros device-sync backend
 
-A personal training website that turns a few details about you — goal, training level, equipment, and diet — into a full workout and meal plan, then helps you track streaks, check-ins, and daily activity.
+A small Express server that handles the OAuth 2.0 flow for Fitbit and Google Fit and exposes a simple API for the static Macros frontend to pull today's activity from. Client secrets live here, server-side, and are never sent to the browser.
 
-## Pages
-- `index.html` — Landing page: a short summary of what Macros does, with a "Get started" link into the login page.
-- `login.html` — Local account log in / sign up. No backend: accounts and plans are stored only in the browser's `localStorage`.
-- `plan-form.html` — "Make a plan": the intake form (age, weight, height, goal, training level, equipment, diet, wake/sleep times). Requires being logged in.
-- `plan.html` — "My plan": your generated weekly workouts, weekly meals, progress tracking, and a smartwatch activity log. Requires being logged in.
+## What it does
+- `GET /auth/:provider/connect?email=...` — redirects the user to Fitbit/Google to approve access.
+- `GET /auth/:provider/callback` — the provider redirects back here; exchanges the code for tokens and stores them (keyed by the user's email) in `data/tokens.json`.
+- `GET /auth/status?email=...` — which providers this user has connected.
+- `DELETE /auth/:provider?email=...` — disconnect/forget a provider.
+- `GET /api/activity/today?email=...` — fetches today's steps, heart rate, active calories, and (Fitbit only) sleep from whichever provider is connected, refreshing the access token first if it's expired.
 
-## How personalization works
-- **Calorie & macro targets** are calculated per user with a Mifflin-St Jeor style BMR estimate, adjusted for training level (activity multiplier) and goal (a calorie surplus for muscle gain, a deficit for weight loss), with protein set relative to body weight.
-- **Workouts** are selected and worded based on goal (rep ranges, session split) and swap specific exercises based on available equipment (bodyweight / dumbbells / full gym), with volume and rest scaled by training level.
-- **Meals** are selected based on goal and swapped entirely for vegetarian/vegan diets, with nutrition figures pulled from your calculated targets.
+## Setup
+1. `npm install`
+2. `cp .env.example .env` and fill it in:
+   - `SERVER_SECRET`: any random string. Generate one with:
+     ```
+     node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+     ```
+   - `FRONTEND_ORIGIN`: the URL your Macros site is served from (e.g. `http://localhost:5500` if you use VS Code's Live Server, or your GitHub Pages URL).
+   - **Fitbit**: register an app at https://dev.fitbit.com/apps/new (OAuth 2.0 Application Type: **Server**). Set its Redirect URL to match `FITBIT_REDIRECT_URI`.
+   - **Google Fit**: create a project at https://console.cloud.google.com, enable the "Fitness API", configure the OAuth consent screen, then create an OAuth Client ID (type: Web application) and add `GOOGLE_FIT_REDIRECT_URI` to its authorized redirect URIs.
+3. `npm start` — runs on `http://localhost:4000` by default.
 
-## Accounts & data
-This is a static site with no server. Signing up creates a local account (name, email, a salted password hash) stored in this browser only — there's no real authentication across devices, and clearing browser data removes it. This was a deliberate simplification; see `SMARTWATCH_INTEGRATION.md` for what moving to a real backend would involve, since the same backend would also enable real cross-device accounts.
+## Connecting it to the frontend
+In `script.js`, set `DEVICE_BACKEND_URL` (near the top of the file) to wherever this server is reachable — `http://localhost:4000` for local development, or your deployed backend's URL in production. The "Connect Fitbit" / "Connect Google Fit" buttons on the My Plan page will then work.
 
-## Smartwatch tracking
-The plan page can sync real activity from Fitbit and Google Fit, backed by the server in `/backend` (client secrets can't live in frontend code, so a real OAuth flow needs a backend — see `SMARTWATCH_INTEGRATION.md` for why). A manual log is still there as a fallback under "Log activity manually instead" for anyone who hasn't set up the backend, or whose device isn't supported. To turn on real syncing:
-1. Set up and run the backend — see `backend/README.md`.
-2. In `script.js`, set `DEVICE_BACKEND_URL` to wherever that backend is reachable.
-3. Use the "Connect Fitbit" / "Connect Google Fit" buttons on the My Plan page.
+## Deploying for real use
+`localhost` only works while you're developing on your own machine — for the buttons to work for anyone else, this needs to run somewhere with a public HTTPS URL (Render, Fly.io, Railway, a VPS, etc.), and the OAuth redirect URIs registered with Fitbit/Google need to point at that public URL instead of localhost.
 
-## Running locally
-Just open `index.html` in a browser, or serve the folder with any static file server.
+## Storage
+Tokens are stored in `data/tokens.json`, a plain JSON file — fine for a personal project, but swap in a real database (Postgres, SQLite, etc.) before this handles more than a handful of users, since concurrent writes to a single JSON file aren't safe at scale.
+
+## Known limitation
+Google Fit sleep data requires the separate Sessions API and isn't wired up yet (`sleep` comes back `null` for Google Fit); Fitbit sleep works. Apple Health has no web API at all, so it isn't supported here — see `../SMARTWATCH_INTEGRATION.md`.
