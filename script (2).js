@@ -1,8 +1,11 @@
-/* ---------- device-sync backend ----------
-   Real Fitbit/Google Fit syncing needs a server to hold OAuth client secrets - see /backend.
-   Point this at wherever that backend is running. localhost only works while you're developing
-   on your own machine; set it to your deployed backend's URL for anyone else to use it. */
-const DEVICE_BACKEND_URL = get("deviceBackendUrl", "http://localhost:4000");
+/* ---------- backend ----------
+   The backend in /backend handles real accounts (so a plan can follow you across devices),
+   OAuth client secrets for Fitbit/Google Fit, and smartwatch syncing. Point this at wherever
+   that backend is running. localhost only works while you're developing on your own machine;
+   set it to your deployed backend's URL for anyone else to use it.
+   Everything here is a *progressive enhancement*: if the backend is unreachable, the app keeps
+   working exactly as before, entirely out of this browser's localStorage. */
+const BACKEND_URL = get("deviceBackendUrl", "http://localhost:4000");
 
 /* ---------- shared helpers ---------- */
 const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -32,6 +35,7 @@ async function signUp(name, email, password) {
   const salt = genSalt(); const hash = await hashPassword(password, salt);
   users[key] = { name: name.trim(), salt, hash };
   saveUsers(users); set("currentUser", key);
+  await backendSignUp(name, key, password); // best-effort; local account already works if this fails
   return { ok: true };
 }
 async function logIn(email, password) {
@@ -40,9 +44,61 @@ async function logIn(email, password) {
   const hash = await hashPassword(password, user.salt);
   if (hash !== user.hash) return { ok: false, message: "Incorrect password." };
   set("currentUser", key);
+  await backendLogIn(key, password); // best-effort sign-in to the backend for cross-device sync
   return { ok: true };
 }
 window.logOut = () => { localStorage.removeItem("currentUser"); window.location.href = "login.html"; };
+
+/* ---------- backend account sync (best-effort; local account is always the source of truth) ----------
+   The local password hash above is separate from this. The backend keeps its own bcrypt hash and
+   issues a JWT, used only to authenticate profile/plan/device-sync requests to /backend. */
+function authHeaders() {
+  const token = uGet("authToken", "");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+async function backendSignUp(name, email, password) {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/auth/signup`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password }),
+    });
+    if (res.ok) { const data = await res.json(); uSet("authToken", data.token); return; }
+    if (res.status === 409) await backendLogIn(email, password); // account already exists server-side; log in instead
+  } catch { /* backend unreachable - local account still works */ }
+}
+async function backendLogIn(email, password) {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    if (res.ok) { const data = await res.json(); uSet("authToken", data.token); }
+  } catch { /* backend unreachable - local account still works */ }
+}
+async function backendSaveProfile(profile, weeklyWorkouts, weeklyMeals, planVariation) {
+  try {
+    await fetch(`${BACKEND_URL}/api/profile`, {
+      method: "PUT", headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify({ profile, weeklyWorkouts, weeklyMeals, planVariation }),
+    });
+  } catch { /* offline - local plan is unaffected */ }
+}
+async function backendSaveProgress(entry) {
+  try {
+    await fetch(`${BACKEND_URL}/api/progress`, {
+      method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify(entry),
+    });
+  } catch { /* offline - local history is unaffected */ }
+}
+async function backendSaveActivity(entry) {
+  try {
+    await fetch(`${BACKEND_URL}/api/activity`, {
+      method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify(entry),
+    });
+  } catch { /* offline - local activity log is unaffected */ }
+}
 function requireAuth() {
   if (!currentUser()) { set("redirectAfterLogin", window.location.pathname.split("/").pop()); window.location.replace("login.html"); return false; }
   return true;
@@ -173,7 +229,7 @@ function renderPlan() {
 async function fetchDeviceStatus() {
   const email = currentUser(); if (!email) return { connected: [] };
   try {
-    const res = await fetch(`${DEVICE_BACKEND_URL}/auth/status?email=${encodeURIComponent(email)}`);
+    const res = await fetch(`${BACKEND_URL}/auth/status?email=${encodeURIComponent(email)}`);
     if (!res.ok) throw new Error("status request failed");
     return await res.json();
   } catch {
@@ -196,11 +252,11 @@ async function renderDeviceStatus() {
 }
 window.connectDevice = provider => {
   const email = currentUser(); if (!email) return;
-  window.location.href = `${DEVICE_BACKEND_URL}/auth/${provider}/connect?email=${encodeURIComponent(email)}`;
+  window.location.href = `${BACKEND_URL}/auth/${provider}/connect?email=${encodeURIComponent(email)}`;
 };
 window.disconnectDevice = async provider => {
   const email = currentUser(); if (!email) return;
-  try { await fetch(`${DEVICE_BACKEND_URL}/auth/${provider}?email=${encodeURIComponent(email)}`, { method: "DELETE" }); } catch {}
+  try { await fetch(`${BACKEND_URL}/auth/${provider}?email=${encodeURIComponent(email)}`, { method: "DELETE" }); } catch {}
   renderDeviceStatus();
 };
 window.syncDevice = async provider => {
@@ -208,7 +264,7 @@ window.syncDevice = async provider => {
   const summaryEl = document.getElementById("activitySummary");
   if (summaryEl) summaryEl.innerText = "Syncing...";
   try {
-    const res = await fetch(`${DEVICE_BACKEND_URL}/api/activity/today?email=${encodeURIComponent(email)}`);
+    const res = await fetch(`${BACKEND_URL}/api/activity/today?email=${encodeURIComponent(email)}`);
     const data = await res.json();
     if (!res.ok || data.error) { if (summaryEl) summaryEl.innerText = data.error || "Sync failed."; return; }
     const log = JSON.parse(uGet("activityLog", "{}"));
@@ -232,9 +288,10 @@ function setupActivityForm() {
   activityForm.addEventListener("submit", event => {
     event.preventDefault();
     const today = new Date().toISOString().slice(0, 10);
+    const entry = { steps: document.getElementById("activitySteps").value, heartRate: document.getElementById("activityHeartRate").value, calories: document.getElementById("activityCalories").value, sleep: document.getElementById("activitySleep").value };
     const log = JSON.parse(uGet("activityLog", "{}"));
-    log[today] = { steps: document.getElementById("activitySteps").value, heartRate: document.getElementById("activityHeartRate").value, calories: document.getElementById("activityCalories").value, sleep: document.getElementById("activitySleep").value };
-    uSet("activityLog", JSON.stringify(log)); activityForm.reset(); renderActivity();
+    log[today] = entry;
+    uSet("activityLog", JSON.stringify(log)); backendSaveActivity({ date: today, ...entry, source: "manual" }); activityForm.reset(); renderActivity();
   });
 }
 function renderActivity() {
@@ -257,12 +314,13 @@ function setupProfile() {
     const profile = { age, weight: Math.round(weight), height: Math.round(height), goal: document.getElementById("goalSelect").value, level: document.getElementById("levelSelect").value, equipment: document.getElementById("equipmentSelect").value, diet: document.getElementById("dietSelect").value, wakeTime: document.getElementById("wakeTime").value, sleepTime: document.getElementById("sleepTime").value, bmi, bmiMsg: bmiMessage(bmi) };
     profile.targets = calculateTargets(profile);
     uSet("profile", JSON.stringify(profile)); uSet("planReady", "true"); savePlan(0);
+    backendSaveProfile(profile, JSON.parse(uGet("weeklyWorkouts", "[]")), JSON.parse(uGet("weeklyMeals", "[]")), 0);
     window.location.href = "plan.html";
   });
 }
 function setupProgressForm() {
   const progressForm = document.getElementById("progressForm"); if (!progressForm) return;
-  progressForm.addEventListener("submit", event => { event.preventDefault(); const history = JSON.parse(uGet("progressHistory", "[]")); history.unshift({ date: new Date().toLocaleDateString(), weight: document.getElementById("progressWeight").value, waist: document.getElementById("progressWaist").value, note: document.getElementById("progressNote").value }); uSet("progressHistory", JSON.stringify(history.slice(0, 12))); progressForm.reset(); renderProgress(); });
+  progressForm.addEventListener("submit", event => { event.preventDefault(); const entry = { date: new Date().toLocaleDateString(), weight: document.getElementById("progressWeight").value, waist: document.getElementById("progressWaist").value, note: document.getElementById("progressNote").value }; const history = JSON.parse(uGet("progressHistory", "[]")); history.unshift(entry); uSet("progressHistory", JSON.stringify(history.slice(0, 12))); backendSaveProgress(entry); progressForm.reset(); renderProgress(); });
 }
 function setupAuthForms() {
   const signupForm = document.getElementById("signupForm"); const loginForm = document.getElementById("loginForm"); const errorEl = document.getElementById("authError");
