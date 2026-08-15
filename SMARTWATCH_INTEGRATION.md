@@ -20,14 +20,14 @@ Every major fitness API (Fitbit, Google Fit) uses OAuth 2.0. The client secret u
 ## What's built
 The backend in `/backend` implements the architecture above for Fitbit and Google Fit:
 - `/auth/:provider/connect` and `/auth/:provider/callback` run the OAuth 2.0 Authorization Code flow, with a signed `state` parameter so callbacks can't be forged.
-- Tokens are stored server-side (`backend/data/tokens.json` by default — swap for a real database before this handles more than a handful of people) and refreshed automatically when expired.
+- Tokens are stored server-side in Postgres (see `backend/src/db.js`) and refreshed automatically when expired.
 - `/api/activity/today` fetches steps, heart rate, and active calories from whichever provider is connected (plus sleep for Fitbit; Google Fit's sleep needs its separate Sessions API and isn't wired up yet).
 - The frontend (`plan.html` / `script.js`) has "Connect Fitbit" / "Connect Google Fit" buttons that redirect into this flow, and a "Sync now" button that calls `/api/activity/today` and writes the result into the same `activityLog` structure the manual log uses — so the rest of the page doesn't need to know whether a number came from a device or was typed in.
 
 ## To turn it on
 1. Follow `backend/README.md` to install dependencies, get Fitbit/Google API credentials, and fill in `.env`.
 2. Run the backend (`npm start` inside `/backend`).
-3. Set `DEVICE_BACKEND_URL` near the top of `script.js` to wherever that backend is reachable.
+3. Set `API_BASE_URL` near the top of `script.js` to wherever that backend is reachable.
 4. `localhost` only works while you're testing on your own machine — deploy the backend somewhere with a public HTTPS URL (Render, Fly.io, Railway, etc.) for it to work for anyone else, and update the redirect URIs registered with Fitbit/Google to match.
 
 ## Still true

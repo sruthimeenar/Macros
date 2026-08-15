@@ -58,19 +58,19 @@ async function refreshTokens(refreshToken) {
   };
 }
 
-async function getValidAccessToken(email) {
-  let tokens = store.getTokens(email, "fitbit");
+async function getValidAccessToken(userId) {
+  let tokens = await store.getTokens(userId, "fitbit");
   if (!tokens) return null;
   if (Date.now() > tokens.expiresAt - 60 * 1000) {
     const refreshed = await refreshTokens(tokens.refreshToken);
     tokens = { ...tokens, ...refreshed };
-    store.saveTokens(email, "fitbit", tokens);
+    await store.saveTokens(userId, "fitbit", tokens);
   }
   return tokens.accessToken;
 }
 
-async function fetchTodayActivity(email) {
-  const accessToken = await getValidAccessToken(email);
+async function fetchTodayActivity(userId) {
+  const accessToken = await getValidAccessToken(userId);
   if (!accessToken) return null;
   const today = new Date().toISOString().slice(0, 10);
   const headers = { Authorization: `Bearer ${accessToken}` };

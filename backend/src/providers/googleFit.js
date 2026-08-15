@@ -67,13 +67,13 @@ async function refreshTokens(refreshToken) {
   };
 }
 
-async function getValidAccessToken(email) {
-  let tokens = store.getTokens(email, "googleFit");
+async function getValidAccessToken(userId) {
+  let tokens = await store.getTokens(userId, "googleFit");
   if (!tokens) return null;
   if (Date.now() > tokens.expiresAt - 60 * 1000) {
     const refreshed = await refreshTokens(tokens.refreshToken);
     tokens = { ...tokens, ...refreshed };
-    store.saveTokens(email, "googleFit", tokens);
+    await store.saveTokens(userId, "googleFit", tokens);
   }
   return tokens.accessToken;
 }
@@ -102,8 +102,8 @@ function extractValue(json, valueKey) {
   return value[valueKey] ?? null;
 }
 
-async function fetchTodayActivity(email) {
-  const accessToken = await getValidAccessToken(email);
+async function fetchTodayActivity(userId) {
+  const accessToken = await getValidAccessToken(userId);
   if (!accessToken) return null;
 
   const [steps, calories, heart] = await Promise.all([

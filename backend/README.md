@@ -1,34 +1,37 @@
-# Macros device-sync backend
+# Macros backend
 
-A small Express server that handles the OAuth 2.0 flow for Fitbit and Google Fit and exposes a simple API for the static Macros frontend to pull today's activity from. Client secrets live here, server-side, and are never sent to the browser.
+An Express + Postgres server that stores accounts, plans, and progress, and handles the OAuth 2.0 flow for Fitbit and Google Fit so smartwatch data can sync automatically in the background. Client secrets and passwords live here, server-side — never in the frontend.
 
 ## What it does
-- `GET /auth/:provider/connect?email=...` — redirects the user to Fitbit/Google to approve access.
-- `GET /auth/:provider/callback` — the provider redirects back here; exchanges the code for tokens and stores them (keyed by the user's email) in `data/tokens.json`.
-- `GET /auth/status?email=...` — which providers this user has connected.
-- `DELETE /auth/:provider?email=...` — disconnect/forget a provider.
-- `GET /api/activity/today?email=...` — fetches today's steps, heart rate, active calories, and (Fitbit only) sleep from whichever provider is connected, refreshing the access token first if it's expired.
+- `POST /api/auth/signup`, `POST /api/auth/login`, `GET /api/auth/me` — accounts, with salted+hashed passwords and a signed session token.
+- `GET/PUT /api/profile`, `GET /api/plan`, `POST /api/plan/regenerate`, `POST /api/plan/complete` — your profile and generated plan, stored server-side.
+- `GET/POST /api/progress` — check-in history.
+- `GET /api/activity/today`, `POST /api/activity/manual`, `POST /api/activity/sync` — today's activity, either logged by hand or synced from a device.
+- `GET /auth/devices/:provider/connect`, `GET /auth/devices/:provider/callback`, `GET /auth/devices/status`, `DELETE /auth/devices/:provider` — the Fitbit/Google Fit OAuth flow.
+- `GET/POST /webhooks/fitbit` — optional push-notification receiver for near-real-time updates.
+- A background scheduler (`src/scheduler.js`) automatically re-syncs every connected device on an interval, with zero action needed from the user.
 
 ## Setup
 1. `npm install`
 2. `cp .env.example .env` and fill it in:
-   - `SERVER_SECRET`: any random string. Generate one with:
+   - `SERVER_SECRET` and `JWT_SECRET`: two different random strings. Generate each with:
      ```
      node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
      ```
-   - `FRONTEND_ORIGIN`: the URL your Macros site is served from (e.g. `http://localhost:5500` if you use VS Code's Live Server, or your GitHub Pages URL).
-   - **Fitbit**: register an app at https://dev.fitbit.com/apps/new (OAuth 2.0 Application Type: **Server**). Set its Redirect URL to match `FITBIT_REDIRECT_URI`.
-   - **Google Fit**: create a project at https://console.cloud.google.com, enable the "Fitness API", configure the OAuth consent screen, then create an OAuth Client ID (type: Web application) and add `GOOGLE_FIT_REDIRECT_URI` to its authorized redirect URIs.
-3. `npm start` — runs on `http://localhost:4000` by default.
+   - `DATABASE_URL`: a Postgres connection string. For a free hosted database with no credit card, create a project at https://neon.tech and copy its connection string (`postgres://user:pass@host/db?sslmode=require`).
+   - `FRONTEND_ORIGIN`: the URL your Macros site is served from.
+   - **Fitbit** / **Google Fit**: see the comments in `.env.example` for how to register an app with each.
+3. `npm start` — runs on `http://localhost:4000` by default. On first run it creates all the tables it needs automatically.
 
 ## Connecting it to the frontend
-In `script.js`, set `DEVICE_BACKEND_URL` (near the top of the file) to wherever this server is reachable — `http://localhost:4000` for local development, or your deployed backend's URL in production. The "Connect Fitbit" / "Connect Google Fit" buttons on the My Plan page will then work.
+In `script.js`, set `API_BASE_URL` (near the top of the file) to wherever this server is reachable.
 
-## Deploying for real use
-`localhost` only works while you're developing on your own machine — for the buttons to work for anyone else, this needs to run somewhere with a public HTTPS URL (Render, Fly.io, Railway, a VPS, etc.), and the OAuth redirect URIs registered with Fitbit/Google need to point at that public URL instead of localhost.
-
-## Storage
-Tokens are stored in `data/tokens.json`, a plain JSON file — fine for a personal project, but swap in a real database (Postgres, SQLite, etc.) before this handles more than a handful of users, since concurrent writes to a single JSON file aren't safe at scale.
+## Deploying for free
+- **Database**: Neon's free tier (0.5 GB, scales to zero when idle) — see setup step 2 above.
+- **Compute**: Render's free Web Service tier works well paired with Neon, since Neon holds your data independently of Render's ephemeral filesystem. The tradeoff: a free Render service sleeps after 15 minutes of inactivity, so the first request after a quiet period takes 30-50 seconds to wake up. Everything after that is normal speed.
+- Push this repo to GitHub, create a Render Web Service pointed at the `backend` folder (Build: `npm install`, Start: `npm start`), and add all the `.env` variables under Render's Environment tab (not as a committed `.env` file).
+- Update the Fitbit/Google redirect URIs and `FRONTEND_ORIGIN` to match your real URLs once deployed.
+- Want no cold starts? Render's paid Starter tier (~$7/mo) keeps the service always-on — everything else about this setup stays the same either way.
 
 ## Known limitation
 Google Fit sleep data requires the separate Sessions API and isn't wired up yet (`sleep` comes back `null` for Google Fit); Fitbit sleep works. Apple Health has no web API at all, so it isn't supported here — see `../SMARTWATCH_INTEGRATION.md`.

@@ -1,57 +1,36 @@
 const express = require("express");
-const { signState, verifyState } = require("../state");
-const store = require("../store");
-const fitbit = require("../providers/fitbit");
-const googleFit = require("../providers/googleFit");
+const db = require("../db");
+const { genSalt, hashPassword, verifyPassword, signToken } = require("../auth");
+const { requireAuth } = require("../middleware/requireAuth");
 
-const providers = { fitbit, googleFit };
 const router = express.Router();
 
-// Kick off the OAuth flow for a given provider. The frontend links here with ?email=<the logged-in user's email>.
-router.get("/:provider/connect", (req, res) => {
-  const provider = providers[req.params.provider];
-  const email = String(req.query.email || "").trim().toLowerCase();
-  if (!provider) return res.status(404).send("Unknown provider.");
-  if (!email) return res.status(400).send("Missing email.");
-  const state = signState({ email, ts: Date.now() }, process.env.SERVER_SECRET);
-  res.redirect(provider.getAuthorizeUrl(state));
+router.post("/signup", async (req, res) => {
+  const { name, email, password } = req.body || {};
+  if (!name || !email || !password) return res.status(400).json({ error: "Name, email, and password are required." });
+  if (String(password).length < 6) return res.status(400).json({ error: "Password should be at least 6 characters." });
+  const normalizedEmail = String(email).trim().toLowerCase();
+  if (await db.getUserByEmail(normalizedEmail)) return res.status(409).json({ error: "An account with this email already exists." });
+
+  const salt = genSalt();
+  const hash = hashPassword(password, salt);
+  const user = await db.createUser({ email: normalizedEmail, name: String(name).trim(), passwordHash: hash, passwordSalt: salt });
+  const token = signToken({ sub: user.id }, process.env.JWT_SECRET);
+  res.status(201).json({ token, user: { id: user.id, name: user.name, email: user.email } });
 });
 
-// OAuth redirects back here with a code + our signed state.
-router.get("/:provider/callback", async (req, res) => {
-  const providerName = req.params.provider;
-  const provider = providers[providerName];
-  if (!provider) return res.status(404).send("Unknown provider.");
-  const { code, state, error } = req.query;
-  const frontend = process.env.FRONTEND_ORIGIN || "http://localhost:5500";
-
-  if (error) return res.redirect(`${frontend}/plan.html?deviceError=${encodeURIComponent(String(error))}`);
-
-  const payload = verifyState(state, process.env.SERVER_SECRET);
-  if (!payload) return res.status(400).send("Invalid or expired state.");
-
-  try {
-    const tokens = await provider.exchangeCodeForTokens(code);
-    store.saveTokens(payload.email, providerName, tokens);
-    res.redirect(`${frontend}/plan.html?deviceConnected=${providerName}`);
-  } catch (err) {
-    console.error(err);
-    res.redirect(`${frontend}/plan.html?deviceError=${encodeURIComponent(providerName)}`);
-  }
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body || {};
+  if (!email || !password) return res.status(400).json({ error: "Email and password are required." });
+  const user = await db.getUserByEmail(String(email));
+  if (!user) return res.status(401).json({ error: "No account found with this email." });
+  if (!verifyPassword(password, user.password_salt, user.password_hash)) return res.status(401).json({ error: "Incorrect password." });
+  const token = signToken({ sub: user.id }, process.env.JWT_SECRET);
+  res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
 });
 
-// Which providers does this user currently have connected?
-router.get("/status", (req, res) => {
-  const email = String(req.query.email || "").trim().toLowerCase();
-  if (!email) return res.status(400).json({ error: "Missing email." });
-  res.json({ connected: store.listProviders(email) });
-});
-
-router.delete("/:provider", (req, res) => {
-  const email = String(req.query.email || "").trim().toLowerCase();
-  if (!email) return res.status(400).json({ error: "Missing email." });
-  store.deleteTokens(email, req.params.provider);
-  res.json({ ok: true });
+router.get("/me", requireAuth, (req, res) => {
+  res.json({ user: { id: req.user.id, name: req.user.name, email: req.user.email } });
 });
 
 module.exports = router;
