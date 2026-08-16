@@ -2,7 +2,7 @@
    All account, plan, progress, and activity data now lives on the server in /backend
    (Postgres), not just in this browser. Point this at wherever that backend is running -
    localhost only works while you're developing on your own machine. */
-const API_BASE_URL = get("apiBaseUrl", "http://localhost:4000");
+const API_BASE_URL = get("apiBaseUrl", "https://macros-1aqe.onrender.com");
 
 /* ---------- shared helpers ---------- */
 const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
