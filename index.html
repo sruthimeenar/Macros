@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"><title>Macros | Your plan, built around you</title>
+</head>
+<body class="home-page">
+  <nav class="navbar" aria-label="Primary navigation">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span>Macros</a>
+    <div class="nav-right">
+      <button class="theme-toggle" type="button" onclick="toggleTheme()" aria-label="Toggle dark mode">Mode</button>
+      <a href="index.html" class="active">Home</a>
+      <a href="plan-form.html" data-plan-link>Make a plan</a>
+      <a href="plan.html" data-plan-link>My plan</a>
+      <a href="login.html" data-auth-guest>Log in</a>
+      <span class="nav-user" data-auth-user style="display:none">Hi, <span data-user-name></span></span>
+      <button type="button" class="button-secondary nav-logout" data-auth-user style="display:none" onclick="logOut()">Log out</button>
+    </div>
+  </nav>
+  <main class="dashboard home-dashboard">
+    <section class="hero" aria-labelledby="page-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Personal training, simplified</p>
+        <h1 id="page-title">Build a routine<br><em>with momentum.</em></h1>
+        <p class="hero-intro">Macros turns a few details about you into a full workout and meal plan — matched to your goal, training level, available equipment, and diet — then helps you track streaks, check-ins, and daily activity so the progress actually adds up.</p>
+        <div class="shape-row" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="cta-row">
+          <a class="cta-link" href="login.html">Get started -&gt;</a>
+          <a class="cta-link cta-secondary" href="login.html">Already have a plan? Log in</a>
+        </div>
+      </div>
+      <aside class="hero-art" aria-label="Macros visual motif"><div class="sun"></div><div class="arch"></div><div class="dot"></div><span>MOVE<br>WITH<br>INTENT</span></aside>
+    </section>
+
+    <section class="feature-grid" aria-label="What Macros does">
+      <article class="feature-card"><p class="card-label">01</p><h2>Built around you</h2><p>Your workouts and meals are generated from your goal, training level, equipment, and dietary style — not a one-size-fits-all template.</p></article>
+      <article class="feature-card"><p class="card-label">02</p><h2>Track what matters</h2><p>Check off workouts, log check-ins, and sync daily activity in one dashboard so you can see momentum build week over week.</p></article>
+      <article class="feature-card"><p class="card-label">03</p><h2>Private by default</h2><p>Your account and plan live only in this browser — no ads, no data sharing, nothing sent to a server.</p></article>
+    </section>
+  </main>
+  <footer>Macros <span>&middot;</span> move with intent</footer>
+  <script src="script.js"></script>
+</body></html>
