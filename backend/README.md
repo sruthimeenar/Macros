@@ -1,9 +1,9 @@
 # Macros backend
 
-An Express + Postgres server that stores accounts, plans, and progress, and handles the OAuth 2.0 flow for the Google Health API so smartwatch data can sync automatically in the background. Client secrets and passwords live here, server-side — never in the frontend.
+An Express + Postgres server that stores accounts, plans, and progress, and handles the OAuth 2.0 flow for the Google Health API so smartwatch data can sync automatically in the background. Client secrets and passwords live here, server-side but never in the frontend.
 
 ## Why Google Health API, not Fitbit's own API
-Fitbit and the old Google Fit REST API have merged into one unified **Google Health API**. The legacy Fitbit Web API is being shut down entirely in September 2026, so this is the forward-compatible option. It covers both Fitbit devices (once a user has migrated their Fitbit login to a Google Account, which Google has been prompting Fitbit users to do) and Pixel Watch / Wear OS devices, through one OAuth flow.
+Fitbit and the old Google Fit REST API have merged into one unified **Google Health API**. The legacy Fitbit Web API shut down entirely in September 2026, so this is the forward-compatible option. It covers both Fitbit devices (once a user has migrated their Fitbit login to a Google Account, which Google has been prompting Fitbit users to do) and Pixel Watch / Wear OS devices, through one OAuth flow.
 
 **Heads up:** this API was very new (pre-GA, actively evolving) when this backend was built. If a request in `src/providers/googleHealth.js` 404s or comes back with unexpected data once you test it against a real account, check the current docs before assuming the code is wrong — endpoint IDs and response shapes may have shifted:
 - https://developers.google.com/health/data-types
