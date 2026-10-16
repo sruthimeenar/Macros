@@ -1,6 +1,6 @@
 # Macros
 
-A personal training website that turns a few details about you — goal, training level, equipment, and diet — into a full workout and meal plan, then helps you track streaks, check-ins, and daily activity.
+A personal training website that turns a few details about you such as goal, training level, equipment, and diet into a full workout and meal plan and then helps you track streaks, check-ins, and daily activity.
 
 ## Pages
 - `index.html` — Landing page: a short summary of what Macros does, with a "Get started" link into the login page.
@@ -14,7 +14,7 @@ A personal training website that turns a few details about you — goal, trainin
 - **Meals** are selected based on goal and swapped entirely for vegetarian/vegan diets, with nutrition figures pulled from your calculated targets.
 
 ## Accounts & data
-Everything — accounts, plans, progress check-ins, and activity logs — is stored server-side in Postgres by the backend in `/backend`, not in browser `localStorage`. The browser only holds a session token (like being logged into any normal website), so your data is there whenever you log back in, from any device. See `backend/README.md` for setup, including a free-hosting path (Render + Neon).
+Accounts, plans, progress check-ins, and activity logs is stored server-side in Postgres by the backend in `/backend`, not in browser `localStorage`. The browser only holds a session token (like being logged into any normal website), so your data is there whenever you log back in, from any device. See `backend/README.md` for setup, including a free-hosting path (Render + Neon).
 
 ## Smartwatch tracking
 The plan page can sync real activity from wearables (Fitbit devices and Pixel Watch / Wear OS) via the Google Health API, backed by the server in `/backend` (client secrets can't live in frontend code, so a real OAuth flow needs a backend — see `SMARTWATCH_INTEGRATION.md` for why). A manual log is still there as a fallback under "Log activity manually instead" for anyone who hasn't set up the backend, or whose device isn't supported. To turn on real syncing:
